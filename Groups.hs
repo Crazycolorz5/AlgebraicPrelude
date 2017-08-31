@@ -2,50 +2,39 @@ module Groups where
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE ConstrainedClassMethods #-}
-import GHC.Base (Monoid (..), Functor (..), error)
+import GHC.Base (Functor (..), error, Eq(..))
+import Prelude ()
 
 class Semigroup s where
     sgmul :: s -> s -> s
 
+class Monoid m where
+    (*) :: m -> m -> m
+    one :: m
+
 class (Monoid g, Eq g) => Group g where
-    gmul :: g -> g -> g
-    gmul = mappend
-    e :: g
-    e = mempty
-    ginv :: g -> g
-    ginv = gdiv e
-    gdiv :: g -> g -> g
-    gdiv a b = gmul a (ginv b)
+    inv :: g -> g
+    inv = (one /)
+    (/) :: g -> g -> g
+    (/) a b = a * (inv b)
 
 class (Eq g) => AddGroup g where
-    gadd :: g -> g -> g
-    gzero :: g
-    gneg :: g -> g
-    gsub :: g -> g -> g
-    gsub a b = gadd a (gneg b)
+    (+) :: g -> g -> g
+    zero :: g
+    neg :: g -> g
+    (-) :: g -> g -> g
+    (-) a b = a + (neg b)
 
 data Additive a = Add a deriving Eq
 instance Functor Additive where
     fmap f (Add a) = Add (f a)
 
 instance (Group g) => AddGroup (Additive g) where
-    gadd (Add a) (Add b) = Add (gmul a b)
-    gzero = Add e
-    gneg (Add a) = Add (ginv a)
+    (+) (Add a) (Add b) = Add (a * b)
+    zero = Add one
+    neg (Add a) = Add (inv a)
 
-class (AddGroup r, Monoid r) => Ring r where
-    (*) :: r -> r -> r
-    (*) = mappend
-    (+) :: r -> r -> r
-    (+) = gadd
-    (-) :: r -> r -> r
-    (-) = gsub
-    zero :: r
-    zero = gzero
-    one :: r
-    one = mempty
-    neg :: r -> r
-    neg = gneg
+class (AddGroup r, Monoid r) => Ring r
 
 class (Ring r) => AbelianRing r
 
@@ -60,8 +49,5 @@ class (AbelianRing d) => EucideanDomain d where
     euclidean :: d -> Int --TODO: make Integer
 -}
 
-class (Ring f, Group f) => Field f where
-    (/) :: f -> f -> f
-    (/) = gdiv
-    inv :: f -> f
-    inv x = if x == zero then error "Inverse of additive identity." else ginv x
+class (AddGroup f, Group f) => Field f --where
+    --inv x = if x == zero then error "Inverse of additive identity." else inv x

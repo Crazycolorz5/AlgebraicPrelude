@@ -1,7 +1,7 @@
 module Order where
 {-# LANGUAGE NoImplicitPrelude #-}
 
-import Groups (Field, Ring (..))
+import Groups
 import GHC.Base (Eq (..), Ord (..), Maybe, Bool, not, (&&), otherwise)
 import Prelude ()
 
