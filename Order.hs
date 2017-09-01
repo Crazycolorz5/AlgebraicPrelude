@@ -9,16 +9,6 @@ class (Eq s) => PartialOrder s where
     (-<) :: s -> s -> Maybe Bool
 --Satisfying reflexivity and transitivity and antisymmetry
 
-{- Is basically just Ord...
-class (Eq s) => TotalOrder s where
-    (<=) :: s -> s -> Bool
-    (>) :: s -> s -> Bool
-    (>) a b = b <= a
-    (<) :: s -> s -> Bool
-    (<) a b = a <= b && a /= b
-    (>=) :: s -> s -> Bool
-    (>=) a b = b < a
--}
 class (Ord f, Ring f) => OrderedRing f where
     isPositive :: f -> Bool
     isPositive = (zero <)
@@ -33,3 +23,14 @@ class (Ord f, Ring f) => OrderedRing f where
         | isPositive x = one
         | isNegative x = neg one
         | otherwise    = zero
+
+class (OrderedRing f, Field f) => OrderedField f
+
+
+class (OrderedRing d) => EuclideanDomain d where
+    quot :: d -> d -> d
+    quot a b = let (q,r) = (quotRem a b) in q
+    rem :: d -> d -> d
+    rem a b = let (q,r) = (quotRem a b) in r
+    --p = q * div p q + mod p q satisfying 0 <= mod p q < abs q
+    quotRem :: d -> d -> (d, d)
