@@ -11,7 +11,7 @@
 
 module Categories (Empty, Category (..), Functor (..), Composition (..), liftComp,
                    Id, unId, NaturalTransformation (..), MonoidalCategory (..),
-                   CatMonoid (..), Monad (..), Endobifunctor (..))
+                   CMonoid (..), Monad (..), Endobifunctor (..))
 
 where
 
@@ -69,7 +69,7 @@ class (Category cat obj, Unitary cat obj o, Endobifunctor cat obj bi) => Monoida
 class (Category c obj) => Unitary c obj o where
     unitId :: (obj o) => c o o
 
-class (MonoidalCategory c obj bi o) => CatMonoid c obj bi o (m :: k) | m -> c bi o where
+class (MonoidalCategory c obj bi o) => CMonoid c obj bi o (m :: k) | m -> c bi o where
     mult :: (obj (bi m m), obj m) => c (bi m m) m
     unit :: (obj o, obj m) => c o m
 
@@ -81,7 +81,7 @@ instance Endobifunctor NaturalTransformation Functor Composition where
 
 instance MonoidalCategory NaturalTransformation Functor Composition Id
 
-class (Functor m, CatMonoid NaturalTransformation Functor Composition Id m) => Monad m where
+class (Functor m, CMonoid NaturalTransformation Functor Composition Id m) => Monad m where
     --Literally just the monoid operations for a monoid in the category of endofunctors under composition
     eta :: NaturalTransformation Id m
     eta = unit
