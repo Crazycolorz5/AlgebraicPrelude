@@ -1,8 +1,9 @@
-module Numbers (Numeric(..), Floating(..), Rational, (//), Int, Float, Double, rational2Floating) where
-
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE MagicHash #-}
 {-# LANGUAGE UnboxedTuples #-}
+
+module Numbers (Numeric(..), Floating(..), Rational, (//), Int, Float, Double, rational2Floating) where
+
 import GHC.Prim
 import Groups
 import Order
@@ -35,9 +36,10 @@ class (OrderedField f, Numeric f) => Floating f where
     floating2Double :: f -> Double
     double2Floating :: Double -> f
 
-instance AddGroup Integer where --TODO: Maybe not dependent on GHC's Num?
+instance AbelianMonoid Integer where --TODO: Maybe not dependent on GHC's Num?
     (+) = (N.+)
     zero = 0
+instance AbelianGroup Integer where --TODO: Same
     neg = N.negate
 instance Monoid Integer where
     (*) = (N.*)
@@ -49,9 +51,10 @@ instance EuclideanDomain Integer where
 instance Integral Integer where
     toInteger = id
 
-instance AddGroup Int where
+instance AbelianMonoid Int where
     (+) (I# x) (I# y) = I# (x +# y)
     zero = 0
+instance AbelianGroup Int where
     neg (I# x) = I# (negateInt# x)
 instance Monoid Int where
     (*) (I# x) (I# y) = I# (x *# y)
@@ -63,9 +66,10 @@ instance EuclideanDomain Int where
 instance Integral Int where
     toInteger (I# i) = smallInteger i
 
-instance AddGroup Float where
+instance AbelianMonoid Float where
     (+) = plusFloat
     zero = 0.0
+instance AbelianGroup Float where
     neg = negateFloat
     (-) = minusFloat
 instance Monoid Float where
@@ -86,9 +90,10 @@ instance Floating Float where
     double2Floating = double2Float
     floating2Double = float2Double
 
-instance AddGroup Double where
+instance AbelianMonoid Double where
     (+) = plusDouble
     zero = 0.0
+instance AbelianGroup Double where
     neg = negateDouble
     (-) = minusDouble
 instance Monoid Double where
@@ -127,9 +132,10 @@ instance Eq Rational where
     (a :/ b) == (c :/ d) = (a == c) && (b == d)
 instance Group Rational where
     (a :/ b) / (c :/ d) = (a*d) // (b*c)
-instance AddGroup Rational where
+instance AbelianMonoid Rational where
     (+) (a :/ b) (c :/ d) = (a*d + b*c) // (b*d)
     zero = 0 :/ 1
+instance AbelianGroup Rational where
     neg (a :/ b) = neg a // b
 instance Ring Rational
 instance Field Rational
@@ -141,6 +147,7 @@ instance OrderedField Rational
 rational2Floating :: (Floating f) => Rational -> f
 rational2Floating (a :/ b) = fromIntegral a / fromIntegral b
 
+-- TODO: Reduce dependence on GHC's Num?
 instance Numeric Int where
     fromIntegral = N.fromInteger . toInteger
     fromFloating = N.fromInteger . truncate

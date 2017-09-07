@@ -9,6 +9,7 @@ class (Eq s) => PartialOrder s where
     (-<) :: s -> s -> Maybe Bool
 --Satisfying reflexivity and transitivity and antisymmetry
 
+--TODO: Make it not dependent on Ord
 class (Ord f, Ring f) => OrderedRing f where
     isPositive :: f -> Bool
     isPositive = (zero <)
