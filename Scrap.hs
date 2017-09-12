@@ -1,5 +1,23 @@
 
 
+--class (Category cat, obj) => TwoCategory cat obj where
+--    (.+) :: cat (cat a b) (cat a b) ->
+
+class (Category c obj) => TwoCategory c obj homset where --The homset must be equaitable
+    (.+) :: (homset (c a b) (c a b)) -> (homset (c a b) (c a b)) -> (homset (c a b) (c a b))
+
+instance TwoCategory (->) Empty (->) where
+    (.+) :: ((a->b) -> (a->b)) -> ((a->b) -> (a->b)) -> ((a->b) -> (a->b))
+
+
+{-
+class (Category cat obj) => EnrichedCategory (cat :: k -> k -> *) (obj :: * -> Constraint) (morph :: * -> Constraint) where
+    (.+) :: (obj a, obj b, obj c, morph (cat a b), morph (cat b c), morph (cat a c)) => cat b c -> cat a b -> cat a c
+    id' :: (obj a, morph (cat a a)) => cat a a
+
+instance (Category cat obj) => EnrichedCategory cat obj Category
+-}
+
 class (Category c Empty) => Arrow c where
 arr :: (a -> b) -> c a b
 
