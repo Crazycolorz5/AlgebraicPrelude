@@ -16,6 +16,8 @@ module Categories (Empty, Category (..), Functor (..), Composition (..), liftCom
 
 where
 
+import Groups (Semigroup (..), Monoid (..))
+
 class Category (cat :: k -> k -> *) obj  | cat -> obj where
     (.) :: (obj c, obj d, obj b) => cat c d -> cat b c -> cat b d
     id :: (obj a) => cat a a
@@ -121,6 +123,7 @@ instance (CMonoid (->) Empty (,) Unit a) => Monoid (Monoidal a) where
 instance Monoid a => CMonoid (->) Empty (,) Unit (Monoidal a) where
     mult (Monoidal a, Monoidal b) = Monoidal (a*b)
     unit _ = Monoidal one
-instance Monoid a => Monoid (Monoidal a) where
+instance Monoid a => Semigroup (Monoidal a) where
     (*) (Monoidal a) (Monoidal b) = Monoidal (a*b)
+instance Monoid a => Monoid (Monoidal a) where
     one = Monoidal one

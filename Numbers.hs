@@ -8,6 +8,7 @@ import GHC.Prim
 import Groups
 import Order
 import Strings
+import DataTypes
 import GHC.Base (Int (..) , Eq(..), (&&), Ord(..), error, String, (++), undefined, (.), id)
 import GHC.Show (Show (..))
 import GHC.Float (Double (..), Float (..), plusDouble, minusDouble, negateDouble, timesDouble, fabsDouble, divideDouble,
@@ -41,8 +42,9 @@ instance AbelianMonoid Integer where --TODO: Maybe not dependent on GHC's Num?
     zero = 0
 instance AbelianGroup Integer where --TODO: Same
     neg = N.negate
-instance Monoid Integer where
+instance Semigroup Integer where
     (*) = (N.*)
+instance Monoid Integer where
     one = 1
 instance Ring Integer
 instance OrderedRing Integer
@@ -56,8 +58,9 @@ instance AbelianMonoid Int where
     zero = 0
 instance AbelianGroup Int where
     neg (I# x) = I# (negateInt# x)
-instance Monoid Int where
+instance Semigroup Int where
     (*) (I# x) (I# y) = I# (x *# y)
+instance Monoid Int where
     one = 1
 instance Ring Int
 instance OrderedRing Int
@@ -72,8 +75,9 @@ instance AbelianMonoid Float where
 instance AbelianGroup Float where
     neg = negateFloat
     (-) = minusFloat
-instance Monoid Float where
+instance Semigroup Float where
     (*) = timesFloat
+instance Monoid Float where
     one = 1.0
 instance Group Float where
     (/) = divideFloat
@@ -96,8 +100,9 @@ instance AbelianMonoid Double where
 instance AbelianGroup Double where
     neg = negateDouble
     (-) = minusDouble
-instance Monoid Double where
+instance Semigroup Double where
     (*) = timesDouble
+instance Monoid Double where
     one = 1.0
 instance Group Double where
     (/) = divideDouble
@@ -125,8 +130,9 @@ a // b = let
 instance Show Rational where
     show (a :/ b) = show a * " / " * show b
 
-instance Monoid Rational where
+instance Semigroup Rational where
     (*) (a :/ b) (c :/ d) = (a*c) // (b*d)
+instance Monoid Rational where
     one = 1 :/ 1
 instance Eq Rational where
     (a :/ b) == (c :/ d) = (a == c) && (b == d)

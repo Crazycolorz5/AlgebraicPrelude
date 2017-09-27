@@ -18,10 +18,11 @@ instance Functor [] where
     fmap f [] = []
     fmap f (x:xs) = f x:fmap f xs
 
-instance Monoid [a] where
+instance Semigroup [a] where
     (*) a b = case a of
         [] -> b
         (x:xs) -> x : xs * b
+instance Monoid [a] where
     one = []
 
 product :: (Foldable t, Monoid a) => t a -> a
@@ -40,10 +41,11 @@ data Maybe a = Just a | Nothing deriving (Eq, Show)
 instance Functor Maybe where
     fmap f Nothing = Nothing
     fmap f (Just a) = Just (f a)
-instance (Monoid m) => Monoid (Maybe m) where
+instance Semigroup s => Semigroup (Maybe s) where
     Nothing * _ = Nothing
     _ * Nothing = Nothing
     (Just a) * (Just b) = Just (a * b)
+instance (Monoid m) => Monoid (Maybe m) where
     one = Just one
 instance (AbelianMonoid m) => AbelianMonoid (Maybe m) where
     Nothing + x = x
@@ -65,8 +67,9 @@ GHCi> do a <- [1,2,3]; [a*2]
 [2,4,6]
 -}
 
-instance (Monoid a, Monoid b) => Monoid (a, b) where
+instance (Semigroup a, Semigroup b) => Semigroup (a, b) where
     (a,b) * (c,d) = (a*c, b*d)
+instance (Monoid a, Monoid b) => Monoid (a, b) where
     one = (one, one)
 instance (AbelianMonoid a, AbelianMonoid b) => AbelianMonoid (a, b) where
     (a,b) + (c,d) = (a+c, b+d)

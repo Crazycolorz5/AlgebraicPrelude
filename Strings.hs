@@ -5,7 +5,3 @@ import GHC.Base hiding (Monoid (..))
 import Groups (Monoid(..))
 import GHC.Show (Show)
 import Prelude ()
-
-instance Monoid [a] where
-    (*) = (++)
-    one = []

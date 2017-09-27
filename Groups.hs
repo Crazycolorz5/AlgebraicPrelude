@@ -2,12 +2,14 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE ConstrainedClassMethods #-}
 
-module Groups (Monoid (..), AbelianMonoid (..), Group (..), AbelianGroup (..), Ring, Field) where
+module Groups (Semigroup (..), Monoid (..), AbelianMonoid (..), Group (..), AbelianGroup (..), Ring, Field) where
 
 import GHC.Base (error, Eq(..))
 
-class Monoid m where
-    (*) :: m -> m -> m
+class Semigroup s where
+    (*) :: s -> s -> s
+
+class (Semigroup m) => Monoid m where
     one :: m
 
 class AbelianMonoid m where
