@@ -3,7 +3,7 @@
 {-# LANGUAGE UnboxedTuples #-}
 {-# LANGUAGE RebindableSyntax #-}
 
-module Numbers (module Numbers, Integer, Int) where
+module Numbers (module Numbers, Integer, Int, Float, Double) where
 
 import GHC.Prim
 import Groups
@@ -11,18 +11,29 @@ import Order
 import Strings
 import DataTypes
 import GHC.Base (Int (..) , Eq(..), Bool (True), (&&), Ord(..), error, String, (++), undefined, (.), id)
+import GHC.Enum
 import GHC.Show (Show (..))
-import GHC.Float (Double (..), Float (..), plusDouble, minusDouble, negateDouble, timesDouble, fabsDouble, divideDouble,
+import GHC.Float {- (Double (..), Float (..), plusDouble, minusDouble, negateDouble, timesDouble, fabsDouble, divideDouble,
     plusFloat, minusFloat, negateFloat, timesFloat, fabsFloat, divideFloat,
-    int2Double, double2Float, float2Double, int2Float)
+    int2Double, double2Float, float2Double, int2Float) -} hiding (Floating (..))
 import GHC.Real (gcd, fromRational)
 import qualified GHC.Real as R (truncate, floor, round, ceiling, Integral(..), fromIntegral)
 import qualified GHC.Num as N (Num (fromInteger, negate, (*), (+)))
 import GHC.Integer
 import Prelude ()
 
-class (EuclideanDomain i) => Integral i where
+class (EuclideanDomain i, Numeric i, Enum i) => Integral i where
     toInteger :: i -> Integer
+
+infixr 8 ^
+(^) :: (Field f, Integral i) => f -> i -> f
+(^) x i
+    | i < 0  = inv (x^i)
+    | i == 0 = one
+    | True   = let rec = (x*x) ^ (div i 2) in
+                  case (mod i 2) of
+                    1 -> x * rec
+                    _ -> rec
 
 class Numeric a where
     fromIntegral :: (Integral i) => i -> a
@@ -31,13 +42,37 @@ class Numeric a where
     fromInteger :: Integer -> a --For compatability with GHCi via RebindableSyntax.
     fromInteger = fromIntegral
 
-class (OrderedField f, Numeric f) => Floating f where
+class (OrderedField f, Algebraic f) => Floating f where
     floor :: f -> Integer --TODO: Use my Integral?
     round :: f -> Integer
     truncate :: f -> Integer
     ceiling :: f -> Integer
     floating2Double :: f -> Double
     double2Floating :: Double -> f
+
+class (Field f, Numeric f) => Algebraic f where
+    pi :: f
+    sqrt :: f -> f
+    exp :: f -> f
+    log :: f -> f
+    sin :: f -> f
+    cos :: f -> f
+    tan :: f -> f
+    sinh :: f -> f
+    sinh x = (exp x - exp (neg x)) / 2
+    cosh :: f -> f
+    cosh x = (exp x + exp (neg x)) / 2
+    tanh :: f -> f
+    tanh x = sinh x / cosh x
+    {- TODO: Implement these later
+    asin :: f -> f
+    acos :: f -> f
+    atan :: f -> f
+    asinh :: f -> f
+    acosh :: f -> f
+    atanh :: f -> f
+    -}
+
 
 instance AbelianMonoid Integer where --TODO: Maybe not dependent on GHC's Num?
     (+) = (N.+)
@@ -95,6 +130,18 @@ instance Floating Float where
     ceiling = R.ceiling
     double2Floating = double2Float
     floating2Double = float2Double
+--Lifted straight from GHC.Float's Floating implementation.
+instance  Algebraic Float  where
+    pi                  =  3.141592653589793238
+    exp x               =  expFloat x
+    log x               =  logFloat x
+    sqrt x              =  sqrtFloat x
+    sin x               =  sinFloat x
+    cos x               =  cosFloat x
+    tan x               =  tanFloat x
+    sinh x              =  sinhFloat x
+    cosh x              =  coshFloat x
+    tanh x              =  tanhFloat x
 
 instance AbelianMonoid Double where
     (+) = plusDouble
@@ -120,6 +167,18 @@ instance Floating Double where
     ceiling = R.ceiling
     double2Floating = id
     floating2Double = id
+--Lifted straight from GHC.Float's Floating implementation.
+instance Algebraic Double where
+    pi                  =  3.141592653589793238
+    exp x               =  expDouble x
+    log x               =  logDouble x
+    sqrt x              =  sqrtDouble x
+    sin  x              =  sinDouble x
+    cos  x              =  cosDouble x
+    tan  x              =  tanDouble x
+    sinh x              =  sinhDouble x
+    cosh x              =  coshDouble x
+    tanh x              =  tanhDouble x
 
 data Rational = !Integer :/ !Integer --TODO: Make Integer
 infixl 7 //
