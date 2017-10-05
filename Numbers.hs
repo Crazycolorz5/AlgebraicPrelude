@@ -1,20 +1,21 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE MagicHash #-}
 {-# LANGUAGE UnboxedTuples #-}
+{-# LANGUAGE RebindableSyntax #-}
 
-module Numbers (module Numbers) where
+module Numbers (module Numbers, Integer, Int) where
 
 import GHC.Prim
 import Groups
 import Order
 import Strings
 import DataTypes
-import GHC.Base (Int (..) , Eq(..), (&&), Ord(..), error, String, (++), undefined, (.), id)
+import GHC.Base (Int (..) , Eq(..), Bool (True), (&&), Ord(..), error, String, (++), undefined, (.), id)
 import GHC.Show (Show (..))
 import GHC.Float (Double (..), Float (..), plusDouble, minusDouble, negateDouble, timesDouble, fabsDouble, divideDouble,
     plusFloat, minusFloat, negateFloat, timesFloat, fabsFloat, divideFloat,
     int2Double, double2Float, float2Double, int2Float)
-import GHC.Real (gcd)
+import GHC.Real (gcd, fromRational)
 import qualified GHC.Real as R (truncate, floor, round, ceiling, Integral(..), fromIntegral)
 import qualified GHC.Num as N (Num (fromInteger, negate, (*), (+)))
 import GHC.Integer
@@ -27,6 +28,8 @@ class Numeric a where
     fromIntegral :: (Integral i) => i -> a
     fromFloating :: (Floating f) => f -> a
     toDouble :: a -> Double
+    fromInteger :: Integer -> a --For compatability with GHCi via RebindableSyntax.
+    fromInteger = fromIntegral
 
 class (OrderedField f, Numeric f) => Floating f where
     floor :: f -> Integer --TODO: Use my Integral?
@@ -118,8 +121,9 @@ instance Floating Double where
     double2Floating = id
     floating2Double = id
 
-data Rational = !Int :/ !Int --TODO: Make Integer
-(//) :: Int -> Int -> Rational
+data Rational = !Integer :/ !Integer --TODO: Make Integer
+infixl 7 //
+(//) :: Integer -> Integer -> Rational
 _ // 0 = error "Division by zero."
 a // b = let
     d = gcd a b
@@ -175,5 +179,13 @@ instance Numeric Double where
 
 instance Numeric Rational where
     fromIntegral x = fromIntegral x // 1
-    fromFloating = undefined --Rational approximations TODO
+    fromFloating x = fromFloating_inner x 1 0 -- Diophantine approximation through continued fraction convergents.
+        where
+            fromFloating_inner x qn1 qn2
+                | qn1 > 8388608 = zero {- 2^23, number of precision bits in a float. -}
+                | True = let xFlr = floor x
+                             tailApprox = fromFloating_inner (inv (x - fromIntegral xFlr)) (xFlr * qn1 + qn2) qn1
+                         in  case tailApprox of
+                             0 -> xFlr // 1
+                             _ -> inv tailApprox + xFlr // 1
     toDouble = rational2Floating
