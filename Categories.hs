@@ -9,7 +9,7 @@
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE ConstraintKinds #-}
 
-module Categories (module Numbers) where
+module Categories (module Categories) where
 
 import Groups (Semigroup (..), Monoid (..))
 import Data.Tuple (curry)

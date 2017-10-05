@@ -11,7 +11,7 @@ import Categories
 import Groups
 import Data.List (foldl') --TODO: Use catamorphisms
 import Data.Foldable (Foldable)
-import GHC.Base (Eq (..), Maybe (..), (&&), error, flip)
+import GHC.Base (Eq (..), Maybe (..), Bool (..), (&&), error, flip)
 import GHC.Show (Show (..))
 
 instance Functor [] where
@@ -24,7 +24,10 @@ instance Semigroup [a] where
         (x:xs) -> x : xs * b
 instance Monoid [a] where
     one = []
-
+instance PartialOrder [a] where
+    [] -< _ = Just True
+    (x:xs) -< [] = Just False
+    (x:xs) -< (y:ys) = if x == y then xs -< ys else Nothing
 product :: (Foldable t, Monoid a) => t a -> a
 product = foldl' (*) one
 sum :: (Foldable t, AbelianMonoid a) => t a -> a
