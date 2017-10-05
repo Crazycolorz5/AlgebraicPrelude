@@ -19,6 +19,7 @@ where
 import Groups (Semigroup (..), Monoid (..))
 
 class Category (cat :: k -> k -> *) obj  | cat -> obj where
+    infixr 9 .
     (.) :: (obj c, obj d, obj b) => cat c d -> cat b c -> cat b d
     id :: (obj a) => cat a a
 
@@ -31,8 +32,12 @@ class (Category cat) => CartesianClosed cat where
 class Functor f where
     fmap :: (a -> b) -> (f a -> f b)
 
-class ContravariantFunctor f where
-    contramap :: (a -> b) -> (f b -> f a)
+infixl 4 <$>
+(<$>) :: (Functor f) => (a -> b) -> (f a -> f b)
+(<$>) = fmap
+
+--class ContravariantFunctor f where
+--    contramap :: (a -> b) -> (f b -> f a)
 
 class IdentityFunctor f where
     appId :: a -> f a
@@ -92,8 +97,11 @@ class (Functor m, CMonoid NaturalTransformation Functor Composition Id m) => Mon
     mu :: NaturalTransformation (Composition m m) m
     mu = mult
     --Map to the inside then apply the mu transformation
+    infixl 1 >>=
     (>>=) :: m a -> (a -> m b) -> m b
     m >>= f = (getNT mu) (Compose (fmap f m))
+    return :: a -> m a
+    return = getNT eta . appId
 
 --Category of Types with Functions as arrows:
 --The empty constraint.

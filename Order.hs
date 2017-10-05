@@ -6,6 +6,7 @@ import GHC.Base (Eq (..), Ord (..), Maybe, Bool, not, (&&), otherwise)
 import Prelude ()
 
 class (Eq s) => PartialOrder s where
+    infix 4 -<
     (-<) :: s -> s -> Maybe Bool
 --Satisfying reflexivity and transitivity and antisymmetry
 
@@ -29,9 +30,16 @@ class (OrderedRing f, Field f) => OrderedField f
 
 
 class (OrderedRing d) => EuclideanDomain d where
+    div :: d -> d -> d
+    div a b = let (q,r) = (divMod a b) in q
+    mod :: d -> d -> d
+    mod a b = let (q,r) = (divMod a b) in r
+    --p = q * div p q + mod p q satisfying 0 <= mod p q < abs q
+    divMod :: d -> d -> (d, d)
+    divMod n d = if signum r == neg (signum d) then (q-one, r+d) else qr
+                           where qr@(q,r) = quotRem n d --Copied from GHC.Real
     quot :: d -> d -> d
     quot a b = let (q,r) = (quotRem a b) in q
     rem :: d -> d -> d
     rem a b = let (q,r) = (quotRem a b) in r
-    --p = q * div p q + mod p q satisfying 0 <= mod p q < abs q
     quotRem :: d -> d -> (d, d)

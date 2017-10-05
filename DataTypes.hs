@@ -5,13 +5,13 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE MonoLocalBinds #-}
 
-module DataTypes where
+module DataTypes (module DataTypes, Maybe (..)) where
 
 import Categories
 import Groups
 import Data.List (foldl') --TODO: Use catamorphisms
 import Data.Foldable (Foldable)
-import GHC.Base (Eq (..), (&&))
+import GHC.Base (Eq (..), Maybe (..), (&&), error, flip)
 import GHC.Show (Show (..))
 
 instance Functor [] where
@@ -30,6 +30,34 @@ product = foldl' (*) one
 sum :: (Foldable t, AbelianMonoid a) => t a -> a
 sum = foldl' (+) zero
 
+infixr 5 ++
+infixr 5 :
+(++) :: [a] -> [a] -> [a]
+(++) = (*)
+map :: (a -> b) -> [a] -> [b]
+map = fmap
+
+filter _ [] = []
+filter p (x:xs) = if p x then x : filter p xs else filter p xs
+
+uncons :: [a] -> Maybe (a, [a])
+uncons [] = Nothing
+uncons (a:as) = Just (a, as)
+
+head l = case uncons l of
+    Just (h, t) -> h
+    Nothing -> error "Head of empty list."
+
+tail l = case uncons l of
+    Just (h, t) -> t
+    Nothing -> error "Tail of empty list."
+
+reverse :: [a] -> [a]
+reverse = foldl' (flip (:)) []
+
+takeWhile p [] = []
+takeWhile p (x:xs) = if p x then x : takeWhile p xs else []
+
 instance CMonoid NaturalTransformation Functor Composition Id [] where
     mult = NaturalTransformation (liftComp product)
     unit = NaturalTransformation ((: one) . unId)
@@ -37,7 +65,7 @@ instance CMonoid NaturalTransformation Functor Composition Id [] where
 instance Monad []
 
 
-data Maybe a = Just a | Nothing deriving (Eq, Show)
+--data Maybe a = Just a | Nothing deriving (Eq, Show)
 instance Functor Maybe where
     fmap f Nothing = Nothing
     fmap f (Just a) = Just (f a)

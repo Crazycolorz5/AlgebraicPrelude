@@ -2,7 +2,7 @@
 {-# LANGUAGE MagicHash #-}
 {-# LANGUAGE UnboxedTuples #-}
 
-module Numbers (Numeric(..), Floating(..), Rational, (//), Int, Float, Double, rational2Floating) where
+module Numbers (Numeric(..), Floating(..), Integral(..), Rational, (//), Int, Integer, Float, Double, rational2Floating) where
 
 import GHC.Prim
 import Groups
@@ -22,7 +22,6 @@ import Prelude ()
 
 class (EuclideanDomain i) => Integral i where
     toInteger :: i -> Integer
-    --divQuot --TODO
 
 class Numeric a where
     fromIntegral :: (Integral i) => i -> a
