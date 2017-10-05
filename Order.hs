@@ -4,7 +4,6 @@ module Order (module Order, Ord (..)) where
 
 import Groups
 import GHC.Base (Eq (..), Ord (..), Maybe, Bool, not, (&&), otherwise)
-import Prelude ()
 
 class (Eq s) => PartialOrder s where
     infix 4 -<
@@ -44,3 +43,7 @@ class (OrderedRing d) => EuclideanDomain d where
     rem :: d -> d -> d
     rem a b = let (q,r) = (quotRem a b) in r
     quotRem :: d -> d -> (d, d)
+    quotRem a b = let q = quot a b; r = rem a b in (q, r)
+
+    gcd :: d -> d -> d
+    gcd a b = let m = mod a b in if m == zero then b else gcd b m

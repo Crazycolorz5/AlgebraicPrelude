@@ -1,7 +1,6 @@
-{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE RebindableSyntax #-}
 {-# LANGUAGE MagicHash #-}
 {-# LANGUAGE UnboxedTuples #-}
-{-# LANGUAGE RebindableSyntax #-}
 
 module Numbers (module Numbers, Integer, Int, Float, Double) where
 
@@ -15,12 +14,10 @@ import GHC.Enum
 import GHC.Show (Show (..))
 import GHC.Float {- (Double (..), Float (..), plusDouble, minusDouble, negateDouble, timesDouble, fabsDouble, divideDouble,
     plusFloat, minusFloat, negateFloat, timesFloat, fabsFloat, divideFloat,
-    int2Double, double2Float, float2Double, int2Float) -} hiding (Floating (..))
-import GHC.Real (gcd, fromRational)
-import qualified GHC.Real as R (truncate, floor, round, ceiling, Integral(..), fromIntegral)
+    int2Double, double2Float, float2Double, int2Float) -} hiding (Floating (..), Fractional (..))
+import qualified GHC.Real as R (truncate, floor, round, ceiling, Integral(..), fromIntegral, fromRational, Ratio ((:%)))
 import qualified GHC.Num as N (Num (fromInteger, negate, (*), (+)))
 import GHC.Integer
-import Prelude ()
 
 class (EuclideanDomain i, Numeric i, Enum i) => Integral i where
     toInteger :: i -> Integer
@@ -39,10 +36,8 @@ class Numeric a where
     fromIntegral :: (Integral i) => i -> a
     fromFloating :: (Floating f) => f -> a
     toDouble :: a -> Double
-    fromInteger :: Integer -> a --For compatability with GHCi via RebindableSyntax.
-    fromInteger = fromIntegral
 
-class (OrderedField f, Algebraic f) => Floating f where
+class (OrderedField f{-, Algebraic f-}) => Floating f where
     floor :: f -> Integer --TODO: Use my Integral?
     round :: f -> Integer
     truncate :: f -> Integer
@@ -73,6 +68,49 @@ class (Field f, Numeric f) => Algebraic f where
     atanh :: f -> f
     -}
 
+data Rational = !Integer :/ !Integer --TODO: Make Integer
+infixl 7 //
+(//) :: Integer -> Integer -> Rational
+_ // 0 = error "Division by zero."
+a // b = let
+    d = gcd a b
+    s = signum b
+  in (s * div a d) :/ (s * div b d)
+
+instance Show Rational where
+    show (a :/ b) = show a * " / " * show b
+
+instance Semigroup Rational where
+    (*) (a :/ b) (c :/ d) = (a*c) // (b*d)
+instance Monoid Rational where
+    one = 1 :/ 1
+instance Eq Rational where
+    (a :/ b) == (c :/ d) = (a == c) && (b == d)
+instance Group Rational where
+    (a :/ b) / (c :/ d) = (a*d) // (b*c)
+instance AbelianMonoid Rational where
+    (+) (a :/ b) (c :/ d) = (a*d + b*c) // (b*d)
+    zero = 0 :/ 1
+instance AbelianGroup Rational where
+    neg (a :/ b) = neg a // b
+instance Ring Rational
+instance Field Rational
+instance Ord Rational where
+    (a :/ b) <= (c :/ d) = (a*d) <= (c*b)
+instance OrderedRing Rational
+instance OrderedField Rational
+
+rational2Floating :: (Numeric f, Field f) => Rational -> f
+rational2Floating (a :/ b) = fromInteger a / fromInteger b
+
+--For RebindableSyntax
+fromGHCRational :: R.Ratio Integer -> Rational
+fromGHCRational (a R.:% b) = a :/ b
+fromRational :: (Numeric f, Field f) => R.Ratio Integer -> f
+fromRational = rational2Floating . fromGHCRational
+fromInteger :: (Numeric a) => Integer -> a
+fromInteger = fromIntegral
+
 
 instance AbelianMonoid Integer where --TODO: Maybe not dependent on GHC's Num?
     (+) = (N.+)
@@ -92,7 +130,7 @@ instance Integral Integer where
 
 instance AbelianMonoid Int where
     (+) (I# x) (I# y) = I# (x +# y)
-    zero = 0
+    zero = 0 :: Int
 instance AbelianGroup Int where
     neg (I# x) = I# (negateInt# x)
 instance Semigroup Int where
@@ -108,14 +146,14 @@ instance Integral Int where
 
 instance AbelianMonoid Float where
     (+) = plusFloat
-    zero = 0.0
+    zero = 0
 instance AbelianGroup Float where
     neg = negateFloat
     (-) = minusFloat
 instance Semigroup Float where
     (*) = timesFloat
 instance Monoid Float where
-    one = 1.0
+    one = 1
 instance Group Float where
     (/) = divideFloat
 instance Ring Float
@@ -145,14 +183,14 @@ instance  Algebraic Float  where
 
 instance AbelianMonoid Double where
     (+) = plusDouble
-    zero = 0.0
+    zero = 0
 instance AbelianGroup Double where
     neg = negateDouble
     (-) = minusDouble
 instance Semigroup Double where
     (*) = timesDouble
 instance Monoid Double where
-    one = 1.0
+    one = 1
 instance Group Double where
     (/) = divideDouble
 instance Ring Double
@@ -180,41 +218,6 @@ instance Algebraic Double where
     cosh x              =  coshDouble x
     tanh x              =  tanhDouble x
 
-data Rational = !Integer :/ !Integer --TODO: Make Integer
-infixl 7 //
-(//) :: Integer -> Integer -> Rational
-_ // 0 = error "Division by zero."
-a // b = let
-    d = gcd a b
-    s = signum b
-  in (s * R.div a d) :/ (s * R.div b d)
-
-instance Show Rational where
-    show (a :/ b) = show a * " / " * show b
-
-instance Semigroup Rational where
-    (*) (a :/ b) (c :/ d) = (a*c) // (b*d)
-instance Monoid Rational where
-    one = 1 :/ 1
-instance Eq Rational where
-    (a :/ b) == (c :/ d) = (a == c) && (b == d)
-instance Group Rational where
-    (a :/ b) / (c :/ d) = (a*d) // (b*c)
-instance AbelianMonoid Rational where
-    (+) (a :/ b) (c :/ d) = (a*d + b*c) // (b*d)
-    zero = 0 :/ 1
-instance AbelianGroup Rational where
-    neg (a :/ b) = neg a // b
-instance Ring Rational
-instance Field Rational
-instance Ord Rational where
-    (a :/ b) <= (c :/ d) = (a*d) <= (c*b)
-instance OrderedRing Rational
-instance OrderedField Rational
-
-rational2Floating :: (Floating f) => Rational -> f
-rational2Floating (a :/ b) = fromIntegral a / fromIntegral b
-
 -- TODO: Reduce dependence on GHC's Num?
 instance Numeric Int where
     fromIntegral = N.fromInteger . toInteger
@@ -238,7 +241,8 @@ instance Numeric Double where
 
 instance Numeric Rational where
     fromIntegral x = fromIntegral x // 1
-    fromFloating x = fromFloating_inner x 1 0 -- Diophantine approximation through continued fraction convergents.
+    fromFloating = undefined
+    {-fromFloating x = fromFloating_inner x 1 0 -- Diophantine approximation through continued fraction convergents.
         where
             fromFloating_inner x qn1 qn2
                 | qn1 > 8388608 = zero {- 2^23, number of precision bits in a float. -}
@@ -246,5 +250,5 @@ instance Numeric Rational where
                              tailApprox = fromFloating_inner (inv (x - fromIntegral xFlr)) (xFlr * qn1 + qn2) qn1
                          in  case tailApprox of
                              0 -> xFlr // 1
-                             _ -> inv tailApprox + xFlr // 1
+                             _ -> inv tailApprox + xFlr // 1-}
     toDouble = rational2Floating

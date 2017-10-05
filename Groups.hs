@@ -4,7 +4,7 @@
 
 module Groups (module Groups) where
 
-import GHC.Base (error, Eq(..))
+import GHC.Base (error, Eq(..), Bool (..))
 
 class Semigroup s where
     infixl 7 *
@@ -31,6 +31,9 @@ class (AbelianMonoid g, Eq g) => AbelianGroup g where
     infixl 6 -
     (-) :: g -> g -> g
     (-) a b = a + (neg b)
+
+negate :: (AbelianGroup g) => g -> g
+negate = neg
 
 class (AbelianGroup r, Monoid r) => Ring r
 
