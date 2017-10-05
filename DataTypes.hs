@@ -29,6 +29,12 @@ instance (PartialOrder a) => PartialOrder [a] where
     [] -< _ = Just True
     (x:xs) -< [] = Just False
     (x:xs) -< (y:ys) = if x == y then xs -< ys else x -< y
+{-
+instance (Ord a) => Ord [a] where
+    [] <= _ = True
+    (x:xs) <= [] = False
+    (x:xs) <= (y:ys) = if x == y then xs <= ys else x <= y
+-}
 product :: (Foldable t, Monoid a) => t a -> a
 product = foldl' (*) one
 sum :: (Foldable t, AbelianMonoid a) => t a -> a
@@ -83,6 +89,18 @@ null _ = False
 
 dropWhile p [] = []
 dropWhile p (x:xs) = if p x then dropWhile p xs else (x:xs)
+
+length [] = 0
+length (x:xs) = 1 + (length xs)
+
+drop 0 x = x
+drop n [] = []
+drop n (x:xs) = drop (n-1) xs
+
+last (x:[]) = x
+last (x:xs) = last xs
+
+iterate f seed = seed : fmap f (iterate f seed)
 
 instance CMonoid NaturalTransformation Functor Composition Id [] where
     mult = NaturalTransformation (liftComp product)

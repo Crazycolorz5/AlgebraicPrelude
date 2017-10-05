@@ -19,8 +19,14 @@ import qualified GHC.Real as R (truncate, floor, round, ceiling, Integral(..), f
 import qualified GHC.Num as N (Num (fromInteger, negate, (*), (+)))
 import GHC.Integer
 
-class (EuclideanDomain i, Numeric i, Enum i) => Integral i where
+class (EuclideanDomain i, Numeric i, Enum i, Ord i) => Integral i where
     toInteger :: i -> Integer
+    quot :: i -> i -> i
+    quot a b = let (q,r) = (quotRem a b) in q
+    rem :: i -> i -> i
+    rem a b = let (q,r) = (quotRem a b) in r
+    quotRem :: i -> i -> (i, i)
+    quotRem a b = let q = quot a b; r = rem a b in (q, r)
 
 infixr 8 ^
 (^) :: (Monoid m, Integral i) => m -> i -> m
@@ -123,9 +129,10 @@ instance Monoid Integer where
 instance Ring Integer
 instance OrderedRing Integer
 instance EuclideanDomain Integer where
-    quotRem = R.quotRem
+    divMod = R.divMod
 instance Integral Integer where
     toInteger = id
+    quotRem = R.quotRem
 
 instance AbelianMonoid Int where
     (+) (I# x) (I# y) = I# (x +# y)
@@ -139,9 +146,10 @@ instance Monoid Int where
 instance Ring Int
 instance OrderedRing Int
 instance EuclideanDomain Int where
-    quotRem = R.quotRem
+    divMod = R.divMod
 instance Integral Int where
     toInteger (I# i) = smallInteger i
+    quotRem = R.quotRem
 
 instance AbelianMonoid Float where
     (+) = plusFloat
