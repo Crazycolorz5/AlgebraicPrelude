@@ -23,9 +23,8 @@ class (EuclideanDomain i, Numeric i, Enum i) => Integral i where
     toInteger :: i -> Integer
 
 infixr 8 ^
-(^) :: (Field f, Integral i) => f -> i -> f
+(^) :: (Monoid m, Integral i) => m -> i -> m
 (^) x i
-    | i < 0  = inv (x^i)
     | i == 0 = one
     | True   = let rec = (x*x) ^ (div i 2) in
                   case (mod i 2) of
@@ -37,7 +36,7 @@ class Numeric a where
     fromFloating :: (Floating f) => f -> a
     toDouble :: a -> Double
 
-class (OrderedField f{-, Algebraic f-}) => Floating f where
+class (OrderedField f, Algebraic f) => Floating f where
     floor :: f -> Integer --TODO: Use my Integral?
     round :: f -> Integer
     truncate :: f -> Integer
@@ -241,8 +240,7 @@ instance Numeric Double where
 
 instance Numeric Rational where
     fromIntegral x = fromIntegral x // 1
-    fromFloating = undefined
-    {-fromFloating x = fromFloating_inner x 1 0 -- Diophantine approximation through continued fraction convergents.
+    fromFloating x = fromFloating_inner x 1 0 -- Diophantine approximation through continued fraction convergents.
         where
             fromFloating_inner x qn1 qn2
                 | qn1 > 8388608 = zero {- 2^23, number of precision bits in a float. -}
@@ -250,5 +248,5 @@ instance Numeric Rational where
                              tailApprox = fromFloating_inner (inv (x - fromIntegral xFlr)) (xFlr * qn1 + qn2) qn1
                          in  case tailApprox of
                              0 -> xFlr // 1
-                             _ -> inv tailApprox + xFlr // 1-}
+                             _ -> inv tailApprox + xFlr // 1
     toDouble = rational2Floating

@@ -62,6 +62,28 @@ reverse = foldl' (flip (:)) []
 takeWhile p [] = []
 takeWhile p (x:xs) = if p x then x : takeWhile p xs else []
 
+zip = let pair a b = (a, b) in zipWith pair
+
+zipWith _ [] _ = []
+zipWith _ _ [] = []
+zipWith op (a:as) (b:bs) = op a b : zipWith op as bs
+
+zipWithId z op [] [] = []
+zipWithId z op (a:as) [] = op a z : zipWithId z op as []
+zipWithId z op [] (b:bs) = op z b : zipWithId z op [] bs
+zipWithId z op (a:as) (b:bs) = op a b : zipWithId z op as bs
+
+foldl _ z [] = z
+foldl f z (x:xs) = foldl f (f z x) xs
+
+foldl1 f (x:xs) = foldl f x xs
+
+null [] = True
+null _ = False
+
+dropWhile p [] = []
+dropWhile p (x:xs) = if p x then dropWhile p xs else (x:xs)
+
 instance CMonoid NaturalTransformation Functor Composition Id [] where
     mult = NaturalTransformation (liftComp product)
     unit = NaturalTransformation ((: one) . unId)
@@ -98,6 +120,9 @@ instance Monad Maybe
 GHCi> do a <- [1,2,3]; [a*2]
 [2,4,6]
 -}
+
+fst (a, b) = a
+snd (a, b) = b
 
 instance (Semigroup a, Semigroup b) => Semigroup (a, b) where
     (a,b) * (c,d) = (a*c, b*d)
