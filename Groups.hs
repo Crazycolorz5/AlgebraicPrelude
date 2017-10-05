@@ -2,7 +2,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE ConstrainedClassMethods #-}
 
-module Groups (Semigroup (..), Monoid (..), AbelianMonoid (..), Group (..), AbelianGroup (..), Ring, Field) where
+module Groups (module Groups) where
 
 import GHC.Base (error, Eq(..))
 

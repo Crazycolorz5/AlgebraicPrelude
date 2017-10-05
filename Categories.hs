@@ -9,12 +9,7 @@
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE ConstraintKinds #-}
 
-module Categories {-(Empty, Category (..), Functor (..), Composition (..), liftComp,
-                   Id, IdentityFunctor (..), NaturalTransformation (..), MonoidalCategory (..),
-                   Unitary (..),
-                   CMonoid (..), Monad (..), Endobifunctor (..))-}
-
-where
+module Categories (module Numbers) where
 
 import Groups (Semigroup (..), Monoid (..))
 import Data.Tuple (curry)

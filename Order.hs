@@ -1,5 +1,6 @@
-module Order where
 {-# LANGUAGE NoImplicitPrelude #-}
+
+module Order (module Order, Ord (..)) where
 
 import Groups
 import GHC.Base (Eq (..), Ord (..), Maybe, Bool, not, (&&), otherwise)

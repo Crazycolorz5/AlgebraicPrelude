@@ -2,7 +2,7 @@
 {-# LANGUAGE MagicHash #-}
 {-# LANGUAGE UnboxedTuples #-}
 
-module Numbers (Numeric(..), Floating(..), Integral(..), Rational, (//), Int, Integer, Float, Double, rational2Floating) where
+module Numbers (module Numbers) where
 
 import GHC.Prim
 import Groups
