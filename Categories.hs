@@ -9,25 +9,28 @@
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE ConstraintKinds #-}
 
-module Categories (Empty, Category (..), Functor (..), Composition (..), liftComp,
+module Categories {-(Empty, Category (..), Functor (..), Composition (..), liftComp,
                    Id, IdentityFunctor (..), NaturalTransformation (..), MonoidalCategory (..),
                    Unitary (..),
-                   CMonoid (..), Monad (..), Endobifunctor (..))
+                   CMonoid (..), Monad (..), Endobifunctor (..))-}
 
 where
 
 import Groups (Semigroup (..), Monoid (..))
+import Data.Tuple (curry)
 
 class Category (cat :: k -> k -> *) obj  | cat -> obj where
     infixr 9 .
     (.) :: (obj c, obj d, obj b) => cat c d -> cat b c -> cat b d
     id :: (obj a) => cat a a
 
-{-
-class (Category cat) => CartesianClosed cat where
-    evaluationMap :: cat (a->b, a) b
+class (Category cat obj) => CartesianClosed cat obj where
+    evaluationMap :: cat (cat a b, a) b
     --Functor for exponentials?
--}
+
+infixr 0 $
+($) :: (a -> b) -> a -> b
+($) = curry evaluationMap
 
 class Functor f where
     fmap :: (a -> b) -> (f a -> f b)
@@ -110,6 +113,8 @@ instance Empty a
 instance Category (->) Empty where
     f . g = \x -> f (g x)
     id = \x -> x
+instance CartesianClosed (->) Empty where
+    evaluationMap (f, a) = f a
 data Unit = Unit
 newtype Monoidal a = Monoidal a
 instance IdentityFunctor Monoidal where
