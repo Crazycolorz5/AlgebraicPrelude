@@ -8,7 +8,6 @@ import GHC.Prim
 import Groups
 import Order
 import Strings
-import DataTypes
 import GHC.Base (Int (..) , Eq(..), Bool (True), (&&), Ord(..), error, String, (++), undefined, (.), id)
 import GHC.Enum
 import GHC.Show (Show (..))

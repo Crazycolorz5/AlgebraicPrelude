@@ -1,7 +1,12 @@
 module Strings where
 {-# LANGUAGE NoImplicitPrelude #-}
 
-import GHC.Base hiding (Monoid (..))
-import Groups (Monoid(..))
+import Groups
 import GHC.Show (Show)
-import Prelude ()
+
+instance Semigroup [a] where
+    (*) a b = case a of
+        [] -> b
+        (x:xs) -> x : xs * b
+instance Monoid [a] where
+    one = []

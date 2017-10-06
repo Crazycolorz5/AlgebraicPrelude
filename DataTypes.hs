@@ -10,6 +10,7 @@ module DataTypes (module DataTypes, Maybe (..)) where
 import Categories
 import Groups
 import Order
+import VectorSpaces
 import Data.List (foldl') --TODO: Use catamorphisms
 import Data.Foldable (Foldable)
 import GHC.Base (Eq (..), Maybe (..), Bool (..), (&&), error, flip)
@@ -18,23 +19,11 @@ import GHC.Show (Show (..))
 instance Functor [] where
     fmap f [] = []
     fmap f (x:xs) = f x:fmap f xs
-
-instance Semigroup [a] where
-    (*) a b = case a of
-        [] -> b
-        (x:xs) -> x : xs * b
-instance Monoid [a] where
-    one = []
 instance (PartialOrder a) => PartialOrder [a] where
     [] -< _ = Just True
     (x:xs) -< [] = Just False
     (x:xs) -< (y:ys) = if x == y then xs -< ys else x -< y
-{-
-instance (Ord a) => Ord [a] where
-    [] <= _ = True
-    (x:xs) <= [] = False
-    (x:xs) <= (y:ys) = if x == y then xs <= ys else x <= y
--}
+
 product :: (Foldable t, Monoid a) => t a -> a
 product = foldl' (*) one
 sum :: (Foldable t, AbelianMonoid a) => t a -> a
@@ -166,6 +155,21 @@ instance CMonoid NaturalTransformation Functor Composition Id (Composition ((->)
     unit = NaturalTransformation (Compose . makeState . unId) where
         makeState a = \s -> (s, a)
 instance Monad (Composition ((->) s) ((,) s))
+
+
+instance (Field f) => AbelianMonoid (f->f) where
+    f + g = \x -> f x + g x
+    zero = \x -> zero
+instance (Field f) => AbelianGroup (f->f) where
+    neg f = neg . f
+instance (Field f) => Semigroup (f->f) where
+    f * g = f . g
+instance (Field f) => Monoid (f->f) where
+    one = id
+instance (Field f) => Ring (f->f)
+instance (Field f) => VectorSpace (f->f) f where
+    (*^) c f = (*c) . f
+
 
 data Vector2 a = V2 !a !a
 

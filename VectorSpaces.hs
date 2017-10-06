@@ -6,6 +6,7 @@ module VectorSpaces where
 
 import Groups
 import Categories
+import Numbers
 
 class (AbelianGroup v, Field f) => VectorSpace v f where
     infixl 7 *^
@@ -18,16 +19,8 @@ class (AbelianGroup v, Field f) => VectorSpace v f where
 instance (Field f) => VectorSpace f f where
     (*^) a b = a * b
 
+class (Floating f, VectorSpace v f) => InnerProductSpace v f where
+    dot :: v -> v -> f
 
-instance (Field f) => AbelianMonoid (f->f) where
-    f + g = \x -> f x + g x
-    zero = \x -> zero
-instance (Field f) => AbelianGroup (f->f) where
-    neg f = neg . f
-instance (Field f) => Semigroup (f->f) where
-    f * g = f . g
-instance (Field f) => Monoid (f->f) where
-    one = id
-instance (Field f) => Ring (f->f)
-instance (Field f) => VectorSpace (f->f) f where
-    (*^) c f = (*c) . f
+instance (Floating f) => InnerProductSpace f f where
+    dot = (*)
