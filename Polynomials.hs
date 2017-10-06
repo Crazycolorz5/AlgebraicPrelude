@@ -55,7 +55,6 @@ instance (Field f) => EuclideanDomain (Polynomial f) where
     divMod f g = fst . head . dropWhile (uncurry (/=)) $ zip a (tail a) where
         a = iterate (func gLead) (zero, f)
         gLead = last (zip [(0 :: Int)..] (toList g))
-        --func :: (Field f) => (Polynomial f, Polynomial f) -> (Int, f) -> (Polynomial f, Polynomial f)
         func (n, gcoef) (dividend, f) = let factor = (last (toList f) / gcoef) in
             case degree f of
                 Nothing -> (dividend, f)
@@ -63,7 +62,7 @@ instance (Field f) => EuclideanDomain (Polynomial f) where
                     if shift < 0 then (dividend, f) else (dividend + factor *^ x^shift, f - factor *^ x^shift*g)
 
 (-^) :: (Field f, Integral n) => f -> n -> Polynomial f
-(-^) a n = a *^ x^n
+(-^) a n = fromList ([zero]^n ++ [a])
 
 instance Functor Polynomial where
     fmap f = fromList . fmap f . toList

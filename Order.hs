@@ -29,7 +29,7 @@ class (Ord f, Ring f) => OrderedRing f where
 class (OrderedRing f, Field f) => OrderedField f
 
 
-class (Ring d) => EuclideanDomain d where
+class (Ring d, Eq d) => EuclideanDomain d where
     div :: d -> d -> d
     div a b = let (q,r) = (divMod a b) in q
     mod :: d -> d -> d

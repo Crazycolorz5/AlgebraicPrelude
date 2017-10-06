@@ -12,6 +12,7 @@
 module Categories (module Categories) where
 
 import Groups (Semigroup (..), Monoid (..))
+import GHC.Base (Eq (..))
 import Data.Tuple (curry)
 
 class Category (cat :: k -> k -> *) obj  | cat -> obj where
@@ -128,6 +129,8 @@ instance (CMonoid (->) Empty (,) Unit a) => Monoid (Monoidal a) where
     (*) (Monoidal a) (Monoidal b) = Monoidal (mult (a,b))
     one = Monoidal (unit Unit)
 -}
+instance (Eq e) => Eq (Monoidal e) where
+    a == b = unId a == unId b
 instance Monoid a => CMonoid (->) Empty (,) Unit (Monoidal a) where
     mult (Monoidal a, Monoidal b) = Monoidal (a*b)
     unit _ = Monoidal one
