@@ -7,13 +7,11 @@ module Numbers (module Numbers, Integer, Int, Float, Double) where
 import GHC.Prim
 import Groups
 import Order
-import Strings
+import DataTypes.List
 import GHC.Base (Int (..) , Eq(..), Bool (True), (&&), Ord(..), error, String, (++), undefined, (.), id)
 import GHC.Enum
 import GHC.Show (Show (..))
-import GHC.Float {- (Double (..), Float (..), plusDouble, minusDouble, negateDouble, timesDouble, fabsDouble, divideDouble,
-    plusFloat, minusFloat, negateFloat, timesFloat, fabsFloat, divideFloat,
-    int2Double, double2Float, float2Double, int2Float) -} hiding (Floating (..), Fractional (..))
+import GHC.Float hiding (Floating (..), Fractional (..))
 import qualified GHC.Real as R (truncate, floor, round, ceiling, Integral(..), fromIntegral, fromRational, Ratio ((:%)))
 import qualified GHC.Num as N (Num (fromInteger, negate, (*), (+)))
 import GHC.Integer

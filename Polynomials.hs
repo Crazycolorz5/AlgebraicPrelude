@@ -7,6 +7,8 @@ module Polynomials (module Polynomials) where
 import Groups
 import Order
 import DataTypes
+import DataTypes.List
+import DataTypes.Maybe
 import Categories
 import Numbers
 import VectorSpaces
@@ -72,3 +74,6 @@ instance (Field f) => VectorSpace (Polynomial f) f where
 applyPoly :: (Field f, Ring v, VectorSpace v f) => Polynomial f -> v -> v
 applyPoly f x = foldl1 (+) (fmap subPower (zip [(0 :: Int)..] (toList f))) where
     subPower (n, coef) = coef *^ (x^n)
+
+instance (Floating f) => InnerProductSpace (Polynomial f) f where
+    dot f g = foldl (+) zero (zipWithId zero (*) (toList f) (toList g))
