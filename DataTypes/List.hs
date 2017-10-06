@@ -82,11 +82,11 @@ null _ = False
 dropWhile p [] = []
 dropWhile p (x:xs) = if p x then dropWhile p xs else (x:xs)
 
-length [] = zero
-length (x:xs) = one + (length xs)
+length [] = 0
+length (x:xs) = 1 + (length xs)
 
 drop n [] = []
-drop n (x:xs) = if n == zero then (x:xs) else drop (n-one) xs
+drop n (x:xs) = if n == 0 then (x:xs) else drop (n-1) xs
 
 last (x:[]) = x
 last (x:xs) = last xs
