@@ -7,8 +7,9 @@ module Numbers (module Numbers, Integer, Int, Float, Double) where
 import GHC.Prim
 import Groups
 import Order
+import Syntax
 import DataTypes.List
-import GHC.Base (Int (..) , Eq(..), Bool (True), (&&), Ord(..), error, String, (++), undefined, (.), id)
+import GHC.Base (Int (..) , Eq(..), Bool (True), (&&), Ord(..), error, String, undefined, (.), id)
 import GHC.Enum
 import GHC.Show (Show (..))
 import GHC.Float hiding (Floating (..), Fractional (..))
@@ -47,8 +48,13 @@ class (OrderedField f, Algebraic f) => Floating f where
     floating2Double :: f -> Double
     double2Floating :: Double -> f
 
+nan :: (Floating f) => f
+nan = 0/0
+
+pi :: (Numeric f, Field f) => f
+pi = 3.141592653589793238
+
 class (Field f, Numeric f) => Algebraic f where
-    pi :: f
     sqrt :: f -> f
     exp :: f -> f
     log :: f -> f
@@ -61,16 +67,17 @@ class (Field f, Numeric f) => Algebraic f where
     cosh x = (exp x + exp (neg x)) / 2
     tanh :: f -> f
     tanh x = sinh x / cosh x
-    {- TODO: Implement these later
     asin :: f -> f
     acos :: f -> f
     atan :: f -> f
     asinh :: f -> f
+    asinh x = log (x + sqrt (1+x*x))
     acosh :: f -> f
+    acosh x = log (x + (x+1) * sqrt ((x-1)/(x+1)))
     atanh :: f -> f
-    -}
+    atanh x = log ((x+1) / sqrt (1-x*x))
 
-data Rational = !Integer :/ !Integer --TODO: Make Integer
+data Rational = !Integer :/ !Integer
 infixl 7 //
 (//) :: Integer -> Integer -> Rational
 _ // 0 = error "Division by zero."
@@ -78,6 +85,60 @@ a // b = let
     d = gcd a b
     s = signum b
   in (s * div a d) :/ (s * div b d)
+
+data Complex = Complex Double Double
+i = Complex 0 1
+instance Semigroup Complex where
+    (Complex a b) * (Complex c d) = Complex (a*c - b*d) (b*c + a*d)
+instance Monoid Complex where
+    one = Complex 1 0
+instance Group Complex where
+    inv (Complex a b) = let denom = (a*a + b*b) in Complex (a/denom) (neg b/denom)
+instance AbelianMonoid Complex where
+    (Complex a b) + (Complex c d) = Complex (a+c) (b+d)
+    zero = Complex 0 0
+instance AbelianGroup Complex where
+    neg (Complex a b) = Complex (neg a) (neg b)
+instance Show Complex where
+    show (Complex a b) = if b >= 0
+        then show a * "+" * show b * "i"
+        else show a * "-" * show (neg b) * "i"
+instance Ring Complex
+instance Eq Complex where
+    (Complex a b) == (Complex c d) = a == c && b == d
+instance Field Complex
+instance Numeric Complex where
+    fromIntegral x = Complex (fromIntegral x) 0
+    fromFloating x = Complex (fromFloating x) 0
+    toDouble = modulus
+instance Algebraic Complex where
+    sqrt z = fromArg (arg z / 2) (sqrt (modulus z))
+    exp (Complex a b) = fromArg b (exp a)
+    log z = Complex (log (modulus z)) (arg z)
+    sin z = (exp(i*z) - exp(neg i*z)) / (2*i)
+    cos z = (exp(i*z) + exp(neg i*z)) / 2
+    tan z = sin z / cos z
+    asin z = neg i * log(i*z + sqrt(1-(z*z)))
+    acos z = neg i * log(z + sqrt(z*z-1))
+    atan z = log((i-z)/(i+z))/(2*i)
+
+
+arg :: Complex -> Double
+arg (Complex a b) = atan2 b a
+{-
+    | a > 0 && b >= 0 = atan (b/a)
+    | a > 0 && b < 0  = 2*pi + atan (b/a)
+    | a < 0 = pi + atan(b/a)
+    | a == 0 && b > 0 = pi/2
+    | a == 0 && b < 0 = neg pi/2
+    | True = nan
+-}
+
+modulus :: Complex -> Double
+modulus (Complex a b) = sqrt (a*a + b*b)
+
+fromArg :: Double -> Double -> Complex
+fromArg arg r = (Complex (r * cos arg) (r * sin arg))
 
 instance Show Rational where
     show (a :/ b) = show a * " / " * show b
@@ -102,14 +163,14 @@ instance Ord Rational where
 instance OrderedRing Rational
 instance OrderedField Rational
 
-rational2Floating :: (Numeric f, Field f) => Rational -> f
-rational2Floating (a :/ b) = fromInteger a / fromInteger b
+rational2Field :: (Numeric f, Field f) => Rational -> f
+rational2Field (a :/ b) = fromInteger a / fromInteger b
 
 --For RebindableSyntax
 fromGHCRational :: R.Ratio Integer -> Rational
 fromGHCRational (a R.:% b) = a :/ b
 fromRational :: (Numeric f, Field f) => R.Ratio Integer -> f
-fromRational = rational2Floating . fromGHCRational
+fromRational = rational2Field . fromGHCRational
 fromInteger :: (Numeric a) => Integer -> a
 fromInteger = fromIntegral
 
@@ -174,7 +235,6 @@ instance Floating Float where
     floating2Double = float2Double
 --Lifted straight from GHC.Float's Floating implementation.
 instance  Algebraic Float  where
-    pi                  =  3.141592653589793238
     exp x               =  expFloat x
     log x               =  logFloat x
     sqrt x              =  sqrtFloat x
@@ -184,6 +244,9 @@ instance  Algebraic Float  where
     sinh x              =  sinhFloat x
     cosh x              =  coshFloat x
     tanh x              =  tanhFloat x
+    asin x              =  asinFloat x
+    acos x              =  acosFloat x
+    atan x              =  atanFloat x
 
 instance AbelianMonoid Double where
     (+) = plusDouble
@@ -211,7 +274,6 @@ instance Floating Double where
     floating2Double = id
 --Lifted straight from GHC.Float's Floating implementation.
 instance Algebraic Double where
-    pi                  =  3.141592653589793238
     exp x               =  expDouble x
     log x               =  logDouble x
     sqrt x              =  sqrtDouble x
@@ -221,6 +283,9 @@ instance Algebraic Double where
     sinh x              =  sinhDouble x
     cosh x              =  coshDouble x
     tanh x              =  tanhDouble x
+    asin  x             =  asinDouble x
+    acos  x             =  acosDouble x
+    atan  x             =  atanDouble x
 
 -- TODO: Reduce dependence on GHC's Num?
 instance Numeric Int where
@@ -254,4 +319,4 @@ instance Numeric Rational where
                          in  case tailApprox of
                              0 -> xFlr // 1
                              _ -> inv tailApprox + xFlr // 1
-    toDouble = rational2Floating
+    toDouble = rational2Field

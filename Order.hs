@@ -3,6 +3,7 @@
 module Order (module Order, Ord (..)) where
 
 import Groups
+import Syntax
 import GHC.Base (Eq (..), Ord (..), Maybe, Bool, not, (&&), otherwise)
 
 class (Eq s) => PartialOrder s where

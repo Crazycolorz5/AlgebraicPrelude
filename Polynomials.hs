@@ -6,6 +6,7 @@ module Polynomials (module Polynomials) where
 
 import Groups
 import Order
+import Syntax
 import DataTypes
 import DataTypes.List
 import DataTypes.Maybe
@@ -28,7 +29,7 @@ degree f = Just (length (toList f) - 1)
 
 instance (Show f, Field f) => Show (Polynomial f) where
     show l = if null reps then "0" else foldl1 (\acc e -> acc*"+"*e) $ reverse reps where
-        indexed = zip [0..] (toList l)
+        indexed = zip [(0::Int)..] (toList l)
         repFunc (pow, coef) = if coef == zero then "" else case pow of
             0 -> show coef
             1 -> show coef * "*x"

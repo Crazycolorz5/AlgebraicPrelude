@@ -6,6 +6,7 @@ module DataTypes.List where
 import Categories
 import Groups
 import Order
+import Syntax
 import DataTypes.Maybe
 import Data.List (foldl') --TODO: Use catamorphisms
 import Data.Foldable (Foldable)
@@ -81,12 +82,11 @@ null _ = False
 dropWhile p [] = []
 dropWhile p (x:xs) = if p x then dropWhile p xs else (x:xs)
 
-length [] = 0
-length (x:xs) = 1 + (length xs)
+length [] = zero
+length (x:xs) = one + (length xs)
 
-drop 0 x = x
 drop n [] = []
-drop n (x:xs) = drop (n-1) xs
+drop n (x:xs) = if n == zero then (x:xs) else drop (n-one) xs
 
 last (x:[]) = x
 last (x:xs) = last xs

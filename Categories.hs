@@ -12,10 +12,10 @@
 module Categories (module Categories) where
 
 import Groups (Semigroup (..), Monoid (..))
-import GHC.Base (Eq (..))
+import GHC.Base (Eq (..), Constraint)
 import Data.Tuple (curry)
 
-class Category (cat :: k -> k -> *) obj  | cat -> obj where
+class Category (cat :: k -> k -> *) (obj :: k -> Constraint)  | cat -> obj where
     infixr 9 .
     (.) :: (obj c, obj d, obj b) => cat c d -> cat b c -> cat b d
     id :: (obj a) => cat a a
