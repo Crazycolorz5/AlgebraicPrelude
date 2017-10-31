@@ -1,6 +1,7 @@
 {-# LANGUAGE RebindableSyntax #-}
 {-# LANGUAGE MagicHash #-}
 {-# LANGUAGE UnboxedTuples #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module Numbers (module Numbers, Integer, Int, Float, Double) where
 
@@ -13,9 +14,13 @@ import GHC.Base (Int (..) , Eq(..), Bool (True), (&&), Ord(..), error, String, u
 import GHC.Enum
 import GHC.Show (Show (..))
 import GHC.Float hiding (Floating (..), Fractional (..))
-import qualified GHC.Real as R (truncate, floor, round, ceiling, Integral(..), fromIntegral, fromRational, Ratio ((:%)))
+import qualified GHC.Real as R (truncate, floor, round, ceiling, Integral(..), fromRational, Ratio ((:%)))
 import qualified GHC.Num as N (Num (fromInteger, negate, (*), (+)))
 import GHC.Integer
+
+
+class (Ring a) => Numeric a where
+    fromInteger :: Integer -> a
 
 class (EuclideanDomain i, Numeric i, Enum i, Ord i) => Integral i where
     toInteger :: i -> Integer
@@ -27,18 +32,12 @@ class (EuclideanDomain i, Numeric i, Enum i, Ord i) => Integral i where
     quotRem a b = let q = quot a b; r = rem a b in (q, r)
 
 infixr 8 ^
-(^) :: (Monoid m, Integral i) => m -> i -> m
+(^) :: (Monoid m) => m -> Int -> m
 (^) x i
     | i == 0 = one
-    | True   = let rec = (x*x) ^ (div i 2) in
-                  case (mod i 2) of
-                    1 -> x * rec
-                    _ -> rec
-
-class Numeric a where
-    fromIntegral :: (Integral i) => i -> a
-    fromFloating :: (Floating f) => f -> a
-    toDouble :: a -> Double
+    | True   = let (d, m) = (divMod i 2)
+                   rec = (x*x) ^ d in
+               if m == one then x*rec else rec
 
 class (OrderedField f, Algebraic f) => Floating f where
     floor :: f -> Integer --TODO: Use my Integral?
@@ -51,7 +50,7 @@ class (OrderedField f, Algebraic f) => Floating f where
 nan :: (Floating f) => f
 nan = 0/0
 
-pi :: (Numeric f, Field f) => f
+pi :: (Algebraic a) => a
 pi = 3.141592653589793238
 
 class (Field f, Numeric f) => Algebraic f where
@@ -108,9 +107,7 @@ instance Eq Complex where
     (Complex a b) == (Complex c d) = a == c && b == d
 instance Field Complex
 instance Numeric Complex where
-    fromIntegral x = Complex (fromIntegral x) 0
-    fromFloating x = Complex (fromFloating x) 0
-    toDouble = modulus
+    fromInteger x = Complex (fromInteger x) 0
 instance Algebraic Complex where
     sqrt z = fromArg (arg z / 2) (sqrt (modulus z))
     exp (Complex a b) = fromArg b (exp a)
@@ -171,9 +168,6 @@ fromGHCRational :: R.Ratio Integer -> Rational
 fromGHCRational (a R.:% b) = a :/ b
 fromRational :: (Numeric f, Field f) => R.Ratio Integer -> f
 fromRational = rational2Field . fromGHCRational
-fromInteger :: (Numeric a) => Integer -> a
-fromInteger = fromIntegral
-
 
 instance AbelianMonoid Integer where --TODO: Maybe not dependent on GHC's Num?
     (+) = (N.+)
@@ -289,34 +283,27 @@ instance Algebraic Double where
 
 -- TODO: Reduce dependence on GHC's Num?
 instance Numeric Int where
-    fromIntegral = N.fromInteger . toInteger
-    fromFloating = N.fromInteger . truncate
-    toDouble = int2Double
+    fromInteger = N.fromInteger . toInteger
 
 instance Numeric Integer where
-    fromIntegral = toInteger
-    fromFloating = truncate
-    toDouble x = D# (doubleFromInteger x)
+    fromInteger = toInteger
 
 instance Numeric Float where
-    fromIntegral = N.fromInteger . toInteger
-    fromFloating = double2Floating . floating2Double
-    toDouble = floating2Double
+    fromInteger = N.fromInteger . toInteger
 
 instance Numeric Double where
-    fromIntegral = N.fromInteger . toInteger
-    fromFloating = double2Floating . floating2Double
-    toDouble = id
+    fromInteger = N.fromInteger . toInteger
 
 instance Numeric Rational where
-    fromIntegral x = fromIntegral x // 1
-    fromFloating x = fromFloating_inner x 1 0 -- Diophantine approximation through continued fraction convergents.
-        where
-            fromFloating_inner x qn1 qn2
-                | qn1 > 8388608 = zero {- 2^23, number of precision bits in a float. -}
-                | True = let xFlr = floor x
-                             tailApprox = fromFloating_inner (inv (x - fromIntegral xFlr)) (xFlr * qn1 + qn2) qn1
-                         in  case tailApprox of
-                             0 -> xFlr // 1
-                             _ -> inv tailApprox + xFlr // 1
-    toDouble = rational2Field
+    fromInteger x = fromInteger x // 1
+
+floating2Rational :: (Floating f) => f -> Rational
+floating2Rational x = fromFloating_inner x 1 0 -- Diophantine approximation through continued fraction convergents.
+    where
+        fromFloating_inner x qn1 qn2
+            | qn1 > 8388608 = zero {- 2^23, number of precision bits in a float. -}
+            | True = let xFlr = floor x
+                         tailApprox = fromFloating_inner (inv (x - fromInteger xFlr)) (xFlr * qn1 + qn2) qn1
+                     in  case tailApprox of
+                         0 -> xFlr // 1
+                         _ -> inv tailApprox + xFlr // 1

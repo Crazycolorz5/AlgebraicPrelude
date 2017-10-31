@@ -46,7 +46,7 @@ instance (Field f) => AbelianGroup (Polynomial f) where
     neg f = fromList (fmap neg (toList f))
 instance (Field f) => Semigroup (Polynomial f) where
     f * g = foldl (+) zero (fmap fromList shifts) where
-        mulPow :: (Field f) => (Integer, f) -> [f] -> [f]
+        mulPow :: (Field f) => (Int, f) -> [f] -> [f]
         mulPow (n, coef) h = [zero]^n ++ fmap (*coef) h
         shifts = do
             term <- zip [0..] (toList g)
@@ -57,14 +57,14 @@ instance (Field f) => Ring (Polynomial f)
 instance (Field f) => EuclideanDomain (Polynomial f) where
     divMod f g = fst . head . dropWhile (uncurry (/=)) $ zip a (tail a) where
         a = iterate (func gLead) (zero, f)
-        gLead = last (zip [(0 :: Int)..] (toList g))
+        gLead = last (zip [0..] (toList g))
         func (n, gcoef) (dividend, f) = let factor = (last (toList f) / gcoef) in
             case degree f of
                 Nothing -> (dividend, f)
                 Just d -> let shift = d - n in
                     if shift < 0 then (dividend, f) else (dividend + factor *^ x^shift, f - factor *^ x^shift*g)
 
-(-^) :: (Field f, Integral n) => f -> n -> Polynomial f
+(-^) :: (Field f) => f -> Int -> Polynomial f
 (-^) a n = fromList ([zero]^n ++ [a])
 
 instance Functor Polynomial where
@@ -78,3 +78,6 @@ applyPoly f x = foldl1 (+) (fmap subPower (zip [(0 :: Int)..] (toList f))) where
 
 instance (Floating f) => InnerProductSpace (Polynomial f) f where
     dot f g = foldl (+) zero (zipWithId zero (*) (toList f) (toList g))
+
+instance (Field f, Numeric f) => Numeric (Polynomial f) where
+    fromInteger x = fromList [fromInteger x]

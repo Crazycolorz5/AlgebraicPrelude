@@ -10,7 +10,7 @@ import Syntax
 import DataTypes.Maybe
 import Data.List (foldl') --TODO: Use catamorphisms
 import Data.Foldable (Foldable)
-import GHC.Base (Eq (..), Bool (..), (&&), error, flip)
+import GHC.Base (Eq (..), Bool (..), (&&), (||), error, flip)
 
 instance Semigroup [a] where
     (*) a b = case a of
@@ -82,14 +82,20 @@ null _ = False
 dropWhile p [] = []
 dropWhile p (x:xs) = if p x then dropWhile p xs else (x:xs)
 
-length [] = 0
-length (x:xs) = 1 + (length xs)
+length [] = zero
+length (x:xs) = one + (length xs)
+
+take n [] = []
+take n (x:xs) = if n == zero then [] else x : take (n-one) xs
 
 drop n [] = []
-drop n (x:xs) = if n == 0 then (x:xs) else drop (n-1) xs
+drop n (x:xs) = if n == zero then (x:xs) else drop (n-one) xs
 
 last (x:[]) = x
 last (x:xs) = last xs
+
+elem x [] = False
+elem x (y:ys) = x == y || elem x ys
 
 iterate f seed = seed : fmap f (iterate f seed)
 
